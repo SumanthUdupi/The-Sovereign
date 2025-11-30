@@ -1,0 +1,731 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Crown, Eye, Shield, User, Search, ShoppingBag, 
+  Bell, ChefHat, Wine, Play, Heart, Share2, 
+  Clock, Star, MapPin, X, ChevronRight, Send,
+  Maximize2, Volume2, Mic, Phone, CheckCircle,
+  MoreHorizontal
+} from 'lucide-react';
+
+/* THE SOVEREIGN - V2.0 
+  "Accessible Royalty"
+  
+  Design System: Midnight at the Palace
+  - Obsidian Black: #000000
+  - Velvet Charcoal: #121212
+  - Brushed Gold: #C5A059
+  - Cinematic Red: #8B0000
+*/
+
+// --- MOCK DATA ---
+
+const WINGS = [
+  { id: 'italian', name: 'The Italian Wing', image: 'https://images.unsplash.com/photo-1498579150354-977475b7ea0b?auto=format&fit=crop&q=80&w=800' },
+  { id: 'japanese', name: 'The Japanese Wing', image: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?auto=format&fit=crop&q=80&w=800' },
+  { id: 'french', name: 'The French Wing', image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=800' },
+  { id: 'steak', name: 'The Steakhouse Wing', image: 'https://images.unsplash.com/photo-1546964124-0cce460f38ef?auto=format&fit=crop&q=80&w=800' },
+];
+
+const DISHES = [
+  {
+    id: 1,
+    wing: 'italian',
+    name: 'Osso Buco alla Milanese',
+    chef: 'Chef Marco Rossi',
+    restaurant: 'Osteria Reale',
+    price: 65,
+    rating: 4.9,
+    reviews: 127,
+    time: '45min',
+    image: 'https://images.unsplash.com/photo-1544510802-ac4ee3f7215f?auto=format&fit=crop&q=80&w=800',
+    description: 'Veal shanks braised with vegetables, white wine and broth.',
+    pairing: {
+      wine: '2016 Barolo Riserva',
+      price: 85,
+      note: "The tannic structure of this Nebbiolo cuts through the rich marrow, while the acidity cleanses the palate.",
+      sommelier: 'Marie Leclerc',
+      sommelierImg: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200'
+    }
+  },
+  {
+    id: 2,
+    wing: 'italian',
+    name: 'Truffle Tagliolini',
+    chef: 'Chef Isabella',
+    restaurant: 'Tartufo',
+    price: 48,
+    rating: 4.8,
+    reviews: 89,
+    time: '25min',
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800',
+    description: 'Hand-cut pasta with shaved Alba white truffles.',
+    pairing: null 
+  },
+  {
+    id: 3,
+    wing: 'japanese',
+    name: 'Omakase Nigiri Set',
+    chef: 'Master Kenji',
+    restaurant: 'Zen Garden',
+    price: 120,
+    rating: 5.0,
+    reviews: 210,
+    time: '30min',
+    image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&q=80&w=800',
+    description: '12 pieces of seasonal fish flown in from Toyosu Market.',
+    pairing: {
+      wine: 'Junmai Daiginjo "Silent Snow"',
+      price: 90,
+      note: "The floral nose of this sake mirrors the sweetness of the uni without overpowering the delicate flounder.",
+      sommelier: 'Hiroshi Tanaka',
+      sommelierImg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
+    }
+  },
+  {
+    id: 4,
+    wing: 'steak',
+    name: 'A5 Wagyu Ribeye',
+    chef: 'Chef James Thorne',
+    restaurant: 'The Iron Grill',
+    price: 150,
+    rating: 4.9,
+    reviews: 342,
+    time: '40min',
+    image: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&q=80&w=800',
+    description: '4oz Japanese A5 Wagyu, grilled over Binchotan charcoal.',
+    pairing: {
+      wine: '2015 Cabernet Sauvignon',
+      price: 120,
+      note: "A bold Napa Cab is required to stand up to the intense marbling of the A5. Notes of blackberry and leather.",
+      sommelier: 'David Chen',
+      sommelierImg: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
+    }
+  }
+];
+
+const VIDEOS = [
+  { id: 1, title: 'Mastering Beef Wellington', chef: 'Gordon R.', duration: '42:15', level: 'Advanced', thumb: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&q=80&w=800' },
+  { id: 2, title: 'The Art of Sushi Rice', chef: 'Jiro O.', duration: '28:30', level: 'Intermediate', thumb: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&q=80&w=800' },
+  { id: 3, title: 'Sauces of France', chef: 'Julia C.', duration: '35:00', level: 'Beginner', thumb: 'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?auto=format&fit=crop&q=80&w=800' },
+];
+
+const COMMUNITY_POSTS = [
+  { id: 1, user: 'HomeCookAlex', badge: 'silver', dish: 'Truffle Mac & Cheese', likes: 342, image: 'https://images.unsplash.com/photo-1543339494-b4cd4f7ba686?auto=format&fit=crop&q=80&w=800' },
+  { id: 2, user: 'SarahEats', badge: 'gold', dish: 'Homemade Orecchiette', likes: 890, image: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&q=80&w=800' },
+];
+
+// --- UTILITY COMPONENTS ---
+
+const GoldButton = ({ children, onClick, className = "", fullWidth = false }) => (
+  <button 
+    onClick={onClick}
+    className={`
+      bg-[#C5A059] hover:bg-[#D4B068] text-black font-semibold py-3 px-6 rounded-xl 
+      transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-[#C5A059]/20
+      ${fullWidth ? 'w-full' : ''} ${className}
+    `}
+  >
+    {children}
+  </button>
+);
+
+const GhostButton = ({ children, onClick, className = "" }) => (
+  <button 
+    onClick={onClick}
+    className={`
+      bg-transparent border border-[#C5A059] text-[#C5A059] font-medium py-3 px-6 rounded-xl 
+      hover:bg-[#C5A059]/10 transition-all duration-300
+      ${className}
+    `}
+  >
+    {children}
+  </button>
+);
+
+// --- FEATURE COMPONENTS ---
+
+const SommelierNote = ({ pairing, onClose }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+    <div className="relative w-full max-w-md bg-[#F4EFE6] text-[#121212] rounded-xl shadow-2xl overflow-hidden p-8 transform rotate-1">
+      <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-black">
+        <X size={24} />
+      </button>
+      
+      <div className="flex items-center gap-4 mb-6 border-b border-gray-300 pb-4">
+        <img src={pairing.sommelierImg} alt={pairing.sommelier} className="w-16 h-16 rounded-full object-cover border-2 border-[#C5A059]" />
+        <div>
+          <h3 className="font-serif text-2xl italic text-[#8B0000]">A Perfect Match</h3>
+          <p className="text-sm text-gray-600 uppercase tracking-widest">{pairing.sommelier}, Master Sommelier</p>
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-6">
+        <div className="w-1/3 bg-gray-200 rounded-lg h-32 flex items-center justify-center">
+          <Wine className="text-gray-400" size={40} />
+        </div>
+        <div className="w-2/3">
+          <h4 className="font-bold text-lg mb-1">{pairing.wine}</h4>
+          <p className="text-[#C5A059] font-bold text-xl mb-3">${pairing.price}</p>
+          <button className="text-sm underline text-[#8B0000] font-semibold">View Tasting Notes</button>
+        </div>
+      </div>
+
+      <div className="relative p-6 bg-white shadow-inner rounded-lg">
+        <p className="font-serif text-xl leading-relaxed italic text-gray-800">
+          "{pairing.note}"
+        </p>
+        <div className="mt-4 flex justify-end">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Signature_sample.svg/1200px-Signature_sample.svg.png" alt="Signature" className="h-8 opacity-60" />
+        </div>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <GoldButton fullWidth onClick={onClose}>Accept Pairing</GoldButton>
+      </div>
+    </div>
+  </div>
+);
+
+const DigitalButler = ({ isOpen, toggle }) => {
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'bot', text: 'Good evening. How may I assist with your dining experience tonight?' }
+  ]);
+  const [input, setInput] = useState('');
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    setMessages([...messages, { id: Date.now(), sender: 'user', text: input }]);
+    setInput('');
+    setTimeout(() => {
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: 'I have noted your request. A human concierge will review this shortly.' }]);
+    }, 1000);
+  };
+
+  if (!isOpen) return (
+    <button 
+      onClick={toggle}
+      className="fixed bottom-24 right-6 w-14 h-14 bg-[#C5A059] rounded-full shadow-[0_0_20px_rgba(197,160,89,0.4)] flex items-center justify-center text-black z-40 animate-pulse hover:animate-none transition-transform hover:scale-110"
+    >
+      <Bell size={24} fill="currentColor" />
+    </button>
+  );
+
+  return (
+    <div className="fixed bottom-24 right-6 w-80 sm:w-96 h-[500px] bg-[#121212] border border-[#C5A059]/30 rounded-2xl shadow-2xl flex flex-col z-40 overflow-hidden animate-in slide-in-from-bottom-10">
+      <div className="bg-[#1a1a1a] p-4 flex justify-between items-center border-b border-[#333]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#C5A059] rounded-full flex items-center justify-center">
+            <User size={20} className="text-black" />
+          </div>
+          <div>
+            <h3 className="font-serif text-[#F0F0F0]">The Sovereign Butler</h3>
+            <p className="text-xs text-[#C5A059]">Concierge Tier • Online</p>
+          </div>
+        </div>
+        <button onClick={toggle} className="text-gray-400 hover:text-white"><X size={20} /></button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map(msg => (
+          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'user' ? 'bg-[#C5A059] text-black rounded-tr-none' : 'bg-[#333] text-gray-200 rounded-tl-none'}`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="p-4 bg-[#1a1a1a] border-t border-[#333]">
+        <div className="flex items-center gap-2 bg-[#121212] p-2 rounded-xl border border-[#333]">
+          <input 
+            type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your request..."
+            className="flex-1 bg-transparent text-white text-sm focus:outline-none px-2"
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <button onClick={handleSend} className="text-[#C5A059] p-2 hover:bg-[#333] rounded-full">
+            <Send size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CommandOverlay = ({ status }) => (
+  <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+    <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-[#8B0000] flex items-center gap-2">
+      <div className="w-3 h-3 bg-[#8B0000] rounded-full animate-pulse"></div>
+      <span className="text-[#F0F0F0] text-sm font-bold tracking-widest uppercase">Live • Chef Marco's Station</span>
+    </div>
+    <div className="flex gap-2">
+      <button className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:text-[#C5A059]">
+        <Volume2 size={18} />
+      </button>
+      <button className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:text-[#C5A059]">
+        <Maximize2 size={18} />
+      </button>
+    </div>
+  </div>
+);
+
+const CourseBuilder = ({ cart, onRemove }) => {
+  return (
+    <div className="bg-[#121212] border border-[#333] rounded-xl p-6 h-full flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="font-serif text-2xl text-[#C5A059]">Your Menu</h3>
+        <span className="text-xs uppercase tracking-widest text-gray-500">{cart.length} Courses Selected</span>
+      </div>
+
+      <div className="flex-1 space-y-4 overflow-y-auto pr-2">
+        {[1, 2, 3, 4, 5].map((slot, index) => {
+          const dish = cart[index];
+          return (
+            <div key={slot} className={`
+              relative min-h-[100px] border-2 border-dashed rounded-xl flex items-center justify-center transition-all
+              ${dish ? 'border-[#C5A059] bg-[#1a1a1a] border-solid' : 'border-[#333] bg-[#0a0a0a]'}
+            `}>
+              {dish ? (
+                <div className="w-full p-3 flex gap-3">
+                  <img src={dish.image} className="w-20 h-20 object-cover rounded-lg" alt={dish.name} />
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="text-[#C5A059] text-xs font-bold uppercase mb-1">Course {slot}</span>
+                      <button onClick={() => onRemove(index)} className="text-gray-500 hover:text-red-500"><X size={14} /></button>
+                    </div>
+                    <h4 className="text-white font-medium text-sm leading-tight mb-1">{dish.name}</h4>
+                    <p className="text-gray-400 text-xs">{dish.restaurant}</p>
+                    <p className="text-[#C5A059] text-sm mt-1">${dish.price}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <span className="text-[#333] font-serif text-4xl opacity-50">{slot}</span>
+                  <p className="text-gray-600 text-xs uppercase mt-1">Empty Slot</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 border-t border-[#333] pt-4">
+        <div className="flex justify-between text-gray-400 text-sm mb-2">
+          <span>Subtotal</span>
+          <span>${cart.reduce((sum, item) => sum + item.price, 0)}</span>
+        </div>
+        <div className="flex justify-between text-[#C5A059] text-xl font-serif font-bold mb-4">
+          <span>Total</span>
+          <span>${cart.reduce((sum, item) => sum + item.price, 0) + 15}</span>
+        </div>
+        <GoldButton fullWidth>Request Butler Service</GoldButton>
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN APPLICATION ---
+
+export default function TheSovereign() {
+  const [activeTab, setActiveTab] = useState('banquet');
+  const [activeWing, setActiveWing] = useState('italian');
+  const [cart, setCart] = useState([]);
+  const [showPairing, setShowPairing] = useState(null); // Dish ID
+  const [isButlerOpen, setIsButlerOpen] = useState(false);
+  const [orderMode, setOrderMode] = useState('browsing'); // 'browsing' | 'tracking'
+  const [progress, setProgress] = useState(0);
+
+  // Simulated tracker progress
+  useEffect(() => {
+    if (orderMode === 'tracking') {
+      const interval = setInterval(() => {
+        setProgress(p => (p < 100 ? p + 0.5 : 100));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [orderMode]);
+
+  const addToCart = (dish) => {
+    if (cart.length < 5) setCart([...cart, dish]);
+  };
+
+  const removeFromCart = (index) => {
+    const newCart = [...cart];
+    newCart.splice(index, 1);
+    setCart(newCart);
+  };
+
+  return (
+    <div className="flex h-screen w-full bg-[#000000] text-[#F0F0F0] font-sans overflow-hidden">
+      
+      {/* SIDEBAR NAVIGATION (Desktop) */}
+      <aside className="hidden md:flex flex-col w-24 bg-[#121212] border-r border-[#333] items-center py-8 z-20">
+        <div className="mb-12">
+          <Crown size={32} className="text-[#C5A059]" />
+        </div>
+        <nav className="flex flex-col gap-10 flex-1 w-full items-center">
+          {[
+            { id: 'banquet', icon: Crown, label: 'Banquet' },
+            { id: 'theatre', icon: Eye, label: 'Theatre' },
+            { id: 'creators', icon: Shield, label: 'Court' },
+            { id: 'legacy', icon: User, label: 'Legacy' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setOrderMode('browsing'); }}
+              className={`group flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === item.id ? 'text-[#C5A059]' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              <div className={`p-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-[#C5A059]/10 shadow-[0_0_15px_rgba(197,160,89,0.2)]' : ''}`}>
+                <item.icon size={24} />
+              </div>
+              <span className="text-[10px] uppercase tracking-wider font-medium opacity-0 group-hover:opacity-100 transition-opacity absolute ml-20 bg-[#1a1a1a] px-2 py-1 rounded border border-[#333] z-50 pointer-events-none">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
+        <div className="mt-auto">
+          {/* Settings or other footer items */}
+        </div>
+      </aside>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="md:hidden fixed bottom-0 w-full bg-[#121212] border-t border-[#333] flex justify-around py-4 z-50 pb-safe">
+        {[
+            { id: 'banquet', icon: Crown },
+            { id: 'theatre', icon: Eye },
+            { id: 'creators', icon: Shield },
+            { id: 'legacy', icon: User },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => { setActiveTab(item.id); setOrderMode('browsing'); }}
+            className={`${activeTab === item.id ? 'text-[#C5A059]' : 'text-gray-500'}`}
+          >
+            <item.icon size={24} />
+          </button>
+        ))}
+      </nav>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        {/* HEADER */}
+        <header className="h-20 border-b border-[#333] flex items-center justify-between px-8 bg-[#0a0a0a]/90 backdrop-blur-sm z-10">
+          <div>
+            <h1 className="text-2xl font-serif text-[#C5A059] tracking-widest">THE SOVEREIGN</h1>
+            <p className="text-xs text-gray-500 uppercase tracking-[0.2em]">Accessible Royalty</p>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="relative hidden lg:block">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search chefs, dishes, wines..." 
+                className="bg-[#121212] border border-[#333] rounded-full py-2 pl-10 pr-4 w-64 text-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+              />
+              <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#C5A059] cursor-pointer" size={16} />
+            </div>
+            {orderMode === 'browsing' && cart.length > 0 && (
+              <button 
+                onClick={() => setOrderMode('tracking')}
+                className="flex items-center gap-2 bg-[#C5A059] text-black px-4 py-2 rounded-full font-bold text-sm hover:bg-[#D4B068] transition-colors"
+              >
+                <ShoppingBag size={16} />
+                <span>Place Order</span>
+              </button>
+            )}
+            {orderMode === 'tracking' && (
+              <button 
+                onClick={() => setOrderMode('browsing')}
+                className="flex items-center gap-2 border border-[#C5A059] text-[#C5A059] px-4 py-2 rounded-full font-bold text-sm hover:bg-[#C5A059]/10 transition-colors"
+              >
+                <ChevronRight size={16} className="rotate-180" />
+                <span>Back to Menu</span>
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* CONTENT SWITCHER */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[#0a0a0a] relative">
+          
+          {/* VIEW: BANQUET (Browsing) */}
+          {activeTab === 'banquet' && orderMode === 'browsing' && (
+            <div className="flex flex-col lg:flex-row h-full">
+              
+              {/* LEFT: Menu Browser */}
+              <div className="flex-1 p-6 lg:p-10 overflow-y-auto pb-32">
+                
+                {/* Wing Selector */}
+                <div className="mb-10">
+                  <h2 className="text-xl font-serif mb-4 text-gray-400">Select a Wing</h2>
+                  <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    {WINGS.map(wing => (
+                      <button 
+                        key={wing.id}
+                        onClick={() => setActiveWing(wing.id)}
+                        className={`
+                          relative flex-shrink-0 w-60 h-32 rounded-xl overflow-hidden group border-2 transition-all
+                          ${activeWing === wing.id ? 'border-[#C5A059] shadow-lg shadow-[#C5A059]/20' : 'border-transparent opacity-60 hover:opacity-100'}
+                        `}
+                      >
+                        <img src={wing.image} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110" alt={wing.name} />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="font-serif text-xl font-medium tracking-wide text-white">{wing.name}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dish Grid */}
+                <div>
+                  <h2 className="text-3xl font-serif text-[#F0F0F0] mb-6">{WINGS.find(w => w.id === activeWing)?.name}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+                    {DISHES.filter(d => d.wing === activeWing).map(dish => (
+                      <div key={dish.id} className="bg-[#121212] rounded-xl overflow-hidden border border-[#333] hover:border-[#C5A059]/50 transition-all group">
+                        <div className="relative h-48 overflow-hidden">
+                          <img src={dish.image} alt={dish.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-2 py-1 rounded flex items-center gap-1 text-[#C5A059]">
+                            <Star size={12} fill="currentColor" />
+                            <span className="text-xs font-bold">{dish.rating}</span>
+                          </div>
+                        </div>
+                        <div className="p-5">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h3 className="font-serif text-xl text-white mb-1">{dish.name}</h3>
+                              <p className="text-sm text-gray-500 flex items-center gap-1"><ChefHat size={12} /> {dish.chef} • {dish.restaurant}</p>
+                            </div>
+                            <span className="text-[#C5A059] font-bold text-lg">${dish.price}</span>
+                          </div>
+                          <p className="text-gray-400 text-sm mb-4 line-clamp-2">{dish.description}</p>
+                          
+                          <div className="flex items-center gap-3">
+                            <GoldButton onClick={() => addToCart(dish)} className="py-2 px-4 text-sm flex-1">
+                              Add to Course
+                            </GoldButton>
+                            {dish.pairing && (
+                              <GhostButton onClick={() => setShowPairing(dish.id)} className="py-2 px-3">
+                                <Wine size={18} />
+                              </GhostButton>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT: Course Builder (Desktop) */}
+              <div className="hidden lg:block w-[400px] border-l border-[#333] p-6 bg-[#0a0a0a]">
+                <CourseBuilder cart={cart} onRemove={removeFromCart} />
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: COMMAND CENTER (Order Tracking) */}
+          {orderMode === 'tracking' && (
+            <div className="h-full flex flex-col">
+              {/* Stage 1: The Creation */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-1 p-1">
+                {/* Live Stream */}
+                <div className="lg:col-span-2 bg-[#050505] relative rounded-lg overflow-hidden border border-[#333]">
+                  <CommandOverlay status="Live" />
+                  <img 
+                    src="https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&q=80&w=1600" 
+                    className="w-full h-full object-cover opacity-80" 
+                    alt="Kitchen Stream" 
+                  />
+                  
+                  {/* Milestones Overlay */}
+                  <div className="absolute bottom-8 left-8 right-8 space-y-2">
+                     <div className="flex items-center justify-between text-[#F0F0F0] text-sm mb-2 font-mono">
+                        <span>Preparation Status</span>
+                        <span>{Math.round(progress)}% Complete</span>
+                     </div>
+                     <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                       <div className="h-full bg-[#C5A059] transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                     </div>
+                     <div className="flex gap-4 mt-4">
+                       <div className={`flex items-center gap-2 p-3 rounded-lg backdrop-blur-md border ${progress > 10 ? 'bg-[#121212]/80 border-[#C5A059] text-[#C5A059]' : 'bg-black/50 border-gray-700 text-gray-500'}`}>
+                         <CheckCircle size={16} />
+                         <span className="text-xs font-bold uppercase">Order Rec'd</span>
+                       </div>
+                       <div className={`flex items-center gap-2 p-3 rounded-lg backdrop-blur-md border ${progress > 40 ? 'bg-[#121212]/80 border-[#C5A059] text-[#C5A059]' : 'bg-black/50 border-gray-700 text-gray-500'}`}>
+                         <ChefHat size={16} />
+                         <span className="text-xs font-bold uppercase">Prep</span>
+                       </div>
+                       <div className={`flex items-center gap-2 p-3 rounded-lg backdrop-blur-md border ${progress > 70 ? 'bg-[#121212]/80 border-[#C5A059] text-[#C5A059]' : 'bg-black/50 border-gray-700 text-gray-500'}`}>
+                         <MapPin size={16} />
+                         <span className="text-xs font-bold uppercase">Transit</span>
+                       </div>
+                     </div>
+                  </div>
+                </div>
+
+                {/* Map / Logistics */}
+                <div className="bg-[#121212] rounded-lg border border-[#333] p-6 relative overflow-hidden">
+                   <div className="absolute inset-0 opacity-20">
+                     {/* Abstract map pattern */}
+                     <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-800 via-black to-black"></div>
+                   </div>
+                   <div className="relative z-10">
+                     <h3 className="font-serif text-[#C5A059] text-xl mb-4">The Procession</h3>
+                     <div className="space-y-6">
+                       <div className="flex gap-4">
+                         <div className="flex flex-col items-center">
+                           <div className="w-3 h-3 bg-[#C5A059] rounded-full"></div>
+                           <div className="w-0.5 h-12 bg-[#333]"></div>
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-white">Osteria Reale</p>
+                           <p className="text-xs text-gray-500">Pick up scheduled 7:45 PM</p>
+                         </div>
+                       </div>
+                       <div className="flex gap-4">
+                         <div className="flex flex-col items-center">
+                           <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+                           <div className="w-0.5 h-12 bg-[#333]"></div>
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-gray-400">Zen Garden</p>
+                           <p className="text-xs text-gray-500">Pick up scheduled 8:00 PM</p>
+                         </div>
+                       </div>
+                       <div className="flex gap-4">
+                         <div className="flex flex-col items-center">
+                           <div className="w-8 h-8 -ml-2.5 bg-[#C5A059] rounded-full flex items-center justify-center text-black font-bold animate-pulse">
+                             <Crown size={14} />
+                           </div>
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-[#C5A059]">Your Estate</p>
+                           <p className="text-xs text-gray-500">Estimated Arrival 8:15 PM</p>
+                         </div>
+                       </div>
+                     </div>
+
+                     <div className="mt-12 bg-[#1a1a1a] p-4 rounded-xl border border-[#333]">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+                          <div>
+                            <p className="text-sm font-bold text-white">Sebastian</p>
+                            <p className="text-xs text-[#C5A059]">Your Butler</p>
+                          </div>
+                          <button className="ml-auto bg-[#333] p-2 rounded-full hover:bg-[#444] text-[#C5A059]">
+                            <Phone size={16} />
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 italic">"I have prepared the warming plates as requested."</p>
+                     </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: THEATRE (Video Hub) */}
+          {activeTab === 'theatre' && (
+             <div className="p-8 pb-32">
+                <div className="relative w-full h-[50vh] rounded-2xl overflow-hidden mb-12 group cursor-pointer">
+                  <img src="https://images.unsplash.com/photo-1514362545857-3bc16549766b?auto=format&fit=crop&q=80&w=1600" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Hero" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex flex-col justify-end p-12">
+                    <span className="text-[#C5A059] font-bold tracking-widest uppercase mb-2">New Masterclass</span>
+                    <h1 className="text-5xl font-serif text-white mb-4">The Soul of Sourdough</h1>
+                    <p className="text-gray-300 max-w-xl mb-6 text-lg">Join Master Baker Jean-Pierre as he demystifies the wild yeast starter and creates the perfect crust.</p>
+                    <div className="flex gap-4">
+                      <GoldButton className="flex items-center gap-2"><Play size={20} fill="black" /> Watch Now</GoldButton>
+                      <GhostButton className="flex items-center gap-2">+ Add to List</GhostButton>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-2xl font-serif text-white mb-6">Trending Now</h3>
+                <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide">
+                  {VIDEOS.map(video => (
+                    <div key={video.id} className="min-w-[300px] group cursor-pointer">
+                       <div className="relative h-44 rounded-lg overflow-hidden mb-3 border border-transparent group-hover:border-[#C5A059] transition-all">
+                         <img src={video.thumb} className="w-full h-full object-cover" alt={video.title} />
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                           <div className="w-12 h-12 bg-[#C5A059] rounded-full flex items-center justify-center pl-1">
+                             <Play size={24} fill="black" className="text-black" />
+                           </div>
+                         </div>
+                         <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 text-xs font-bold rounded text-white">{video.duration}</div>
+                       </div>
+                       <h4 className="font-bold text-lg text-gray-200 group-hover:text-[#C5A059] transition-colors">{video.title}</h4>
+                       <p className="text-sm text-gray-500">{video.chef} • <span className="text-[#C5A059]">{video.level}</span></p>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          )}
+
+          {/* VIEW: CREATORS (Community) */}
+          {activeTab === 'creators' && (
+            <div className="flex justify-center p-4 lg:p-8 pb-32">
+              <div className="w-full max-w-md space-y-8">
+                {COMMUNITY_POSTS.map(post => (
+                  <div key={post.id} className="bg-[#121212] rounded-xl border border-[#333] overflow-hidden">
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full bg-gray-700 border-2 ${post.badge === 'gold' ? 'border-[#C5A059]' : 'border-gray-400'}`}></div>
+                        <div>
+                           <p className="font-bold text-sm text-white">@{post.user}</p>
+                           <p className="text-xs text-gray-500">Connoisseur Tier</p>
+                        </div>
+                      </div>
+                      <MoreHorizontal className="text-gray-500" />
+                    </div>
+                    
+                    <div className="relative aspect-[9/16] bg-black">
+                      <img src={post.image} className="w-full h-full object-cover opacity-90" alt={post.dish} />
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black to-transparent p-6 pt-20">
+                         <h3 className="text-xl font-bold text-white mb-2">{post.dish}</h3>
+                         <div className="flex items-center gap-4">
+                            <button className="flex flex-col items-center gap-1 text-white hover:text-red-500 transition-colors">
+                              <Heart size={24} />
+                              <span className="text-xs">{post.likes}</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-1 text-white hover:text-[#C5A059] transition-colors">
+                              <ChefHat size={24} />
+                              <span className="text-xs">Cook This</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-1 text-white hover:text-[#C5A059] transition-colors">
+                              <Share2 size={24} />
+                              <span className="text-xs">Share</span>
+                            </button>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* FLOATING ELEMENTS */}
+        
+        {/* Digital Butler */}
+        <DigitalButler isOpen={isButlerOpen} toggle={() => setIsButlerOpen(!isButlerOpen)} />
+
+        {/* Sommelier Modal Logic */}
+        {showPairing && (
+          <SommelierNote 
+            pairing={DISHES.find(d => d.id === showPairing).pairing} 
+            onClose={() => setShowPairing(null)} 
+          />
+        )}
+
+      </main>
+    </div>
+  );
+}
